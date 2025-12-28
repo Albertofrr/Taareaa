@@ -2,41 +2,49 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Visor de Documentos</title>
+    <title>Visor Markdown Dinámico</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        body { font-family: sans-serif; max-width: 800px; margin: 50px auto; line-height: 1.6; padding: 20px; }
-        #contenido { border-top: 2px solid #eee; padding-top: 20px; }
-        .error { color: red; font-weight: bold; }
+        body { font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; line-height: 1.6; }
+        #contenido { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .error { color: #721c24; background: #f8d7da; padding: 15px; border-radius: 5px; border: 1px solid #f5c6cb; }
     </style>
 </head>
 <body>
 
-    <div id="contenido">Cargando contenido...</div>
+    <div id="contenido">Cargando documento...</div>
 
     <script>
-        // 1. Obtener el número de la URL (ejemplo: index.html?id=3)
         const urlParams = new URLSearchParams(window.location.search);
         const id = urlParams.get('id');
-
         const contenedor = document.getElementById('contenido');
 
-        if (id && id >= 1 && id <= 10) {
-            // 2. Intentar cargar el archivo .txt correspondiente
-            fetch(`${id}.txt`)
+        if (id) {
+            // Buscamos el archivo. Asegúrate de que el nombre sea "1.txt", "2.txt", etc.
+            const archivoNombre = `${id}.txt`;
+
+            fetch(archivoNombre)
                 .then(response => {
-                    if (!response.ok) throw new Error("Archivo no encontrado");
+                    if (!response.ok) {
+                        throw new Error(`No se encontró el archivo: ${archivoNombre} (Error ${response.status})`);
+                    }
                     return response.text();
                 })
                 .then(textoMarkdown => {
-                    // 3. Convertir de Markdown a HTML y mostrar
+                    // Convertir Markdown a HTML
                     contenedor.innerHTML = marked.parse(textoMarkdown);
                 })
                 .catch(err => {
-                    contenedor.innerHTML = `<p class="error">Error: No se pudo cargar el archivo número ${id}.</p>`;
+                    contenedor.innerHTML = `
+                        <div class="error">
+                            <strong>¡Ups! Algo salió mal:</strong><br>
+                            ${err.message}<br><br>
+                            <small>Nota: Si estás abriendo el archivo localmente desde tu PC, intenta subirlo a GitHub para que funcione.</small>
+                        </div>`;
+                    console.error("Detalle del error:", err);
                 });
         } else {
-            contenedor.innerHTML = "<p>Por favor, añade <b>?id=1</b> (del 1 al 10) al final de la URL.</p>";
+            contenedor.innerHTML = "<h1>Bienvenido</h1><p>Por favor, añade <b>?id=1</b> al final de la URL en la barra de direcciones.</p>";
         }
     </script>
 

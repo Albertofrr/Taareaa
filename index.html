@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Visor de Documentos</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 50px auto; line-height: 1.6; padding: 20px; }
+        #contenido { border-top: 2px solid #eee; padding-top: 20px; }
+        .error { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="contenido">Cargando contenido...</div>
+
+    <script>
+        // 1. Obtener el número de la URL (ejemplo: index.html?id=3)
+        const urlParams = new URLSearchParams(window.location.search);
+        const id = urlParams.get('id');
+
+        const contenedor = document.getElementById('contenido');
+
+        if (id && id >= 1 && id <= 10) {
+            // 2. Intentar cargar el archivo .txt correspondiente
+            fetch(`${id}.txt`)
+                .then(response => {
+                    if (!response.ok) throw new Error("Archivo no encontrado");
+                    return response.text();
+                })
+                .then(textoMarkdown => {
+                    // 3. Convertir de Markdown a HTML y mostrar
+                    contenedor.innerHTML = marked.parse(textoMarkdown);
+                })
+                .catch(err => {
+                    contenedor.innerHTML = `<p class="error">Error: No se pudo cargar el archivo número ${id}.</p>`;
+                });
+        } else {
+            contenedor.innerHTML = "<p>Por favor, añade <b>?id=1</b> (del 1 al 10) al final de la URL.</p>";
+        }
+    </script>
+
+</body>
+</html>

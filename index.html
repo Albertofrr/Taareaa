@@ -2,51 +2,119 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Visor Markdown Dinámico</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visor Dinámico</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&family=Roboto+Slab:wght@700&family=Patrick+Hand&family=Fjalla+One&display=swap" rel="stylesheet">
+    
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
     <style>
-        body { font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; line-height: 1.6; }
-        #contenido { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .error { color: #721c24; background: #f8d7da; padding: 15px; border-radius: 5px; border: 1px solid #f5c6cb; }
+        /* TU CSS ADAPTADO */
+        body {
+            font-size: 17px;
+            background-color: #0f0f0f;
+            color: #dedede;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: "Roboto", sans-serif;
+        }
+
+        a {
+            color: #0f0f0f; /* Nota: Tu CSS original pone el link casi negro sobre fondo oscuro */
+            word-break: break-all;
+            overflow-wrap: anywhere;
+            display: inline;
+            text-decoration: none;
+        }
+
+        p {
+            margin-top: 30px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        h2 {
+            font-family: "Roboto Slab", serif;
+            font-weight: 700;
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+
+        /* Clases auxiliares de tu CSS */
+        .aaa { margin-top: 10px; line-height: 1.6; }
+        .ab { margin-top: 10px; margin-bottom: 10px; }
+        .bbb { margin-bottom: 10px; }
+        .asterisco { margin-top: 80px; margin-bottom: 80px; text-align: center; }
+
+        /* Contenedores especiales */
+        .cuadro { border: 6px double; padding: 0 10px; border-radius: 5px; width: auto; }
+        .anuncio { border: 6px solid #141414; padding: 0 10px; border-radius: 5px; background-color: #171717; }
+        .carta { font-family: "Patrick Hand", cursive; border: 6px solid #151515; padding: 0 10px; border-radius: 5px; background-color: #151515; }
+        .guia { font-family: "Fjalla One", sans-serif; border: 6px solid #dedede; padding: 0 10px; border-radius: 5px; color: #0f0f0f; background-color: #dedede; }
+
+        /* Estructura de pantalla */
+        .medio {
+            margin-top: 30px;
+            margin-bottom: 30px;
+            margin-left: 15px;
+            margin-right: 15px;
+            max-width: 900px; /* Opcional: para que no se estire demasiado en PC */
+            margin-inline: auto; 
+        }
+
+        .header-img, .footer-img, .portada, .illu {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
     </style>
 </head>
 <body>
 
-    <div id="contenido">Cargando documento...</div>
+    <div class="medio">
+        <div id="contenido">
+            Cargando contenido...
+        </div>
+    </div>
 
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const id = urlParams.get('id');
-        const contenedor = document.getElementById('contenido');
+        // Función para cargar el archivo
+        async function cargarMarkdown() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            const contenedor = document.getElementById('contenido');
 
-        if (id) {
-            // Buscamos el archivo. Asegúrate de que el nombre sea "1.txt", "2.txt", etc.
-            const archivoNombre = `${id}.txt`;
+            if (!id) {
+                contenedor.innerHTML = "<h2>Bienvenido</h2><p>Por favor, usa ?id=1 en la URL.</p>";
+                return;
+            }
 
-            fetch(archivoNombre)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`No se encontró el archivo: ${archivoNombre} (Error ${response.status})`);
-                    }
-                    return response.text();
-                })
-                .then(textoMarkdown => {
-                    // Convertir Markdown a HTML
-                    contenedor.innerHTML = marked.parse(textoMarkdown);
-                })
-                .catch(err => {
-                    contenedor.innerHTML = `
-                        <div class="error">
-                            <strong>¡Ups! Algo salió mal:</strong><br>
-                            ${err.message}<br><br>
-                            <small>Nota: Si estás abriendo el archivo localmente desde tu PC, intenta subirlo a GitHub para que funcione.</small>
-                        </div>`;
-                    console.error("Detalle del error:", err);
-                });
-        } else {
-            contenedor.innerHTML = "<h1>Bienvenido</h1><p>Por favor, añade <b>?id=1</b> al final de la URL en la barra de direcciones.</p>";
+            try {
+                // Buscamos el archivo .txt (ej: 1.txt)
+                const respuesta = await fetch(`${id}.txt`);
+                
+                if (!respuesta.ok) {
+                    throw new Error(`No se encontró el archivo ${id}.txt`);
+                }
+
+                const textoMd = await respuesta.text();
+                
+                // Renderizamos el Markdown dentro del contenedor
+                contenedor.innerHTML = marked.parse(textoMd);
+
+            } catch (error) {
+                contenedor.innerHTML = `<div class="anuncio">
+                    <h2>Error</h2>
+                    <p>${error.message}</p>
+                    <p>Asegúrate de haber subido el archivo .txt a tu repositorio de GitHub.</p>
+                </div>`;
+            }
         }
-    </script>
 
+        // Ejecutar al cargar la página
+        window.onload = cargarMarkdown;
+    </script>
 </body>
 </html>
